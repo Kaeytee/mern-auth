@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signUpStart, signUpSuccess, signUpFailure } from '../redux/user/userSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
-export default function SignUp() {
+  export default function SignUp() {
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
