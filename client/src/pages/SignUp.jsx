@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { signUpStart, signUpSuccess, signUpFailure } from '../redux/user/userSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { signUpStart, signUpSuccess, signUpFailure } from '../redux/user/userSlice';
+import OAuth from '../components/OAuth';
 
   export default function SignUp() {
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleChange = (e) => {
@@ -30,10 +29,17 @@ import { useDispatch, useSelector } from 'react-redux';
         return;
       }
       dispatch(signUpSuccess(data));
-      navigate('/sign-in');
+      // Use window.location for navigation instead of useNavigate
+      window.location.href = '/sign-in';
     } catch (error) {
       dispatch(signUpFailure(error.message));
     }
+  };
+
+  const handleNavigation = (e, path) => {
+    e.preventDefault();
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   return (
@@ -68,12 +74,13 @@ import { useDispatch, useSelector } from 'react-redux';
         >
           {loading ? 'Signing Up...' : 'Sign Up'}
         </button>
+        <OAuth/>
       </form>
       <div className="flex gap-2 mt-5">
         <p>Have an account?</p>
-        <Link to="/sign-in">
-          <span className="text-blue-500">Sign In</span>
-        </Link>
+        <a href="/sign-in" onClick={(e) => handleNavigation(e, '/sign-in')} className="text-blue-500">
+          Sign In
+        </a>
       </div>
       {error && <p className="text-red-700 mt-5">{error}</p>}
     </div>
