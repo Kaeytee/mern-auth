@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link , useNavigate} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signUpStart, signUpSuccess, signUpFailure } from '../redux/user/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -14,8 +16,7 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      setError(false);
+      dispatch(signUpStart());
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -24,17 +25,14 @@ export default function SignUp() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      setLoading(false);
       if (data.success === false) {
-        setError(true);
+        dispatch(signUpFailure(data.message));
         return;
       }
+      dispatch(signUpSuccess(data));
       navigate('/sign-in');
-
-    // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      setLoading(false);
-      setError(true);
+      dispatch(signUpFailure(error.message));
     }
   };
 
@@ -47,7 +45,6 @@ export default function SignUp() {
           placeholder="Username"
           id="username"
           className="bg-slate-100 p-3 rounded-lg"
-          value={formData.username}
           onChange={handleChange}
         />
         <input
@@ -55,7 +52,6 @@ export default function SignUp() {
           placeholder="Email"
           id="email"
           className="bg-slate-100 p-3 rounded-lg"
-          value={formData.email}
           onChange={handleChange}
         />
         <input
@@ -63,7 +59,6 @@ export default function SignUp() {
           placeholder="Password"
           id="password"
           className="bg-slate-100 p-3 rounded-lg"
-          value={formData.password}
           onChange={handleChange}
         />
         <button
@@ -80,7 +75,7 @@ export default function SignUp() {
           <span className="text-blue-500">Sign In</span>
         </Link>
       </div>
-      <p className="text-red-700 mt-5">{error && 'Something went wrong!'}</p>
+      {error && <p className="text-red-700 mt-5">{error}</p>}
     </div>
   );
 }

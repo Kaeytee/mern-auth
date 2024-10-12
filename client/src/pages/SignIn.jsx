@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
-export default function SignUp(){
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export default function SignIn() {
+  const [formData, setFormData] = useState({});
+  const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -14,8 +16,7 @@ export default function SignUp(){
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      setError(null);
+      dispatch(signInStart());
       const res = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: {
@@ -24,20 +25,14 @@ export default function SignUp(){
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      setLoading(false);
-      if (!res.ok) {
-        setError(data?.message || 'An error occurred!');
+      if (data.success === false) {
+        dispatch(signInFailure(data));
         return;
       }
-      if (data?.success === false) {
-        setError('Invalid email or password');
-        return;
-      }
+      dispatch(signInSuccess(data));
       navigate('/');
     } catch (error) {
-      console.error('Error:', error);
-      setLoading(false);
-      setError('A network error occurred!');
+      dispatch(signInFailure(error));
     }
   };
 
@@ -50,7 +45,6 @@ export default function SignUp(){
           placeholder="Email"
           id="email"
           className="bg-slate-100 p-3 rounded-lg"
-          value={formData.email}
           onChange={handleChange}
         />
         <input
@@ -58,7 +52,6 @@ export default function SignUp(){
           placeholder="Password"
           id="password"
           className="bg-slate-100 p-3 rounded-lg"
-          value={formData.password}
           onChange={handleChange}
         />
         <button
@@ -70,11 +63,14 @@ export default function SignUp(){
         </button>
       </form>
       <div className="flex gap-2 mt-5">
-      <p>Don&apos;t have an account?</p>      <Link to="/sign-up">
+        <p>Don&apos;t have an account?</p> 
+        <Link to="/sign-up">
           <span className="text-blue-500">Sign Up</span>
         </Link>
       </div>
-      {error && <p className="text-red-700 mt-5">{error}</p>}
+      <p className="text-red-700 mt-5">
+          {error ? error.message || 'Something went wrong!': ''}
+      </p>
     </div>
   );
-};
+}
