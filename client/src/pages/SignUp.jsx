@@ -14,6 +14,7 @@ import OAuth from '../components/OAuth';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(signUpFailure(null)); // Clear error message on submit
     try {
       dispatch(signUpStart());
       const res = await fetch('/api/auth/signup', {
