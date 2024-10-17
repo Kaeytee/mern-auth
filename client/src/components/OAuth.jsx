@@ -3,9 +3,11 @@ import { GoogleAuthProvider, signInWithPopup, getAuth } from 'firebase/auth';
 import { app } from '../firebase';
 import { useDispatch } from 'react-redux';
 import { signInSuccess } from '../redux/user/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 export default function OAuth() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [error, setError] = useState(null);
 
   const handleGoogleClick = async () => {
@@ -33,7 +35,14 @@ export default function OAuth() {
       }
 
       const data = await res.json();
-      dispatch(signInSuccess(data));
+
+      if (data.exists) {
+        // User exists, redirect to sign-in page
+        navigate('/sign-in');
+      } else {
+        // New user, update Redux store and proceed
+        dispatch(signInSuccess(data));
+      }
     } catch (error) {
       console.error('Could not login with Google', error);
       setError(`Authentication failed: ${error.message}`);
@@ -41,15 +50,15 @@ export default function OAuth() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <button
-        type="submit"
-        onClick={handleGoogleClick}
-        className="bg-red-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80 max-w-full"
-      >
-        Continue with Google
-      </button>
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-    </div>
-  );
+    
+    <button
+      onClick={handleGoogleClick}
+      type='button'
+      className='bg-red-700 text-white rounded-lg p-3 uppercase hover:opacity-95'
+    >
+      Continue with Google
+      {error && <p className='text-red-500 mt-2'>{error}</p>}
+    </button>
+    
+  )
 }
